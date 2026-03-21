@@ -46,7 +46,7 @@ public class Trip
     public Guid Id { get; set; } = Guid.NewGuid();
     public double Km { get; set; }
     public string Name { get; set; } = "";
-    public DateTime Date { get; set; } = DateTime.Today;
+    public DateTime Date { get; set; } = DateTime.Now;
     public int? BatteryUsedPercent { get; set; }
 }
 

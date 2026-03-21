@@ -207,6 +207,10 @@ input[type="range"]::-webkit-slider-thumb {
 .trip-used  { font-size: 11px; color: var(--muted); }
 .trip-del   { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px 6px; }
 .trip-del:hover { color: var(--danger); }
+.trip-edit  { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px 6px; }
+.trip-edit:hover { color: var(--accent); }
+.trip-editing { flex-direction: column; align-items: stretch; gap: 0; }
+.trip-edit-form { width: 100%; }
 .no-trips   { text-align: center; padding: 30px; color: var(--muted); font-size: 14px; }
 
 /* ── WARTUNG PAGE ──────────────────────────────────────────────────────── */
