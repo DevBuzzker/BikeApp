@@ -1,0 +1,141 @@
+@page "/kilometer"
+@inject BikeStateService State
+
+<PageTitle>Kilometer – E-Bike Tracker</PageTitle>
+
+<Toast @ref="_toast" />
+
+@* ── Stats ────────────────────────────────────────────────────────────── *@
+<div class="section-label">Gesamtkilometer</div>
+<div class="km-card">
+    <div class="km-total">@State.TotalKm.ToString("F1")</div>
+    <div class="km-sub">Kilometer gesamt</div>
+    <div class="km-grid">
+        <div class="km-mini">
+            <span class="km-mini-label">Diese Woche</span>
+            <span class="km-mini-val" style="color:var(--accent)">@State.WeekKm.ToString("F1") km</span>
+        </div>
+        <div class="km-mini">
+            <span class="km-mini-label">Diesen Monat</span>
+            <span class="km-mini-val" style="color:var(--accent2)">@State.MonthKm.ToString("F1") km</span>
+        </div>
+        <div class="km-mini">
+            <span class="km-mini-label">Fahrten</span>
+            <span class="km-mini-val">@State.Trips.Count</span>
+        </div>
+        <div class="km-mini">
+            <span class="km-mini-label">Ø pro Fahrt</span>
+            <span class="km-mini-val" style="color:var(--warn)">@State.AvgKm.ToString("F1") km</span>
+        </div>
+    </div>
+</div>
+
+@* ── Fahrt hinzufügen ─────────────────────────────────────────────────── *@
+<div class="section-label">Fahrt hinzufügen</div>
+<div class="form-card">
+    <div class="input-row">
+        <span class="input-label">Strecke (km)</span>
+        <div class="input-wrap">
+            <input type="number" min="0" step="0.1" @bind="_km"
+                   class="@(_kmError ? "error" : "")"
+                   placeholder="z.B. 18.5" />
+            <span class="input-suffix">km</span>
+        </div>
+        @if (_kmError)
+        {
+            <div class="error-msg visible">Bitte eine gültige Kilometer-Zahl eingeben.</div>
+        }
+    </div>
+
+    <div class="input-row">
+        <span class="input-label">Name / Beschreibung (optional)</span>
+        <input type="text" @bind="_name" placeholder="z.B. Arbeit, Einkaufen..." />
+    </div>
+
+    <div class="input-row">
+        <span class="input-label">Datum</span>
+        <input type="date" @bind="_date" />
+    </div>
+
+    <div class="input-row">
+        <span class="input-label">Akku verbraucht (optional)</span>
+        <div class="input-wrap">
+            <input type="number" min="0" max="100" @bind="_battUsed" placeholder="z.B. 30" />
+            <span class="input-suffix">%</span>
+        </div>
+    </div>
+
+    <div class="btn-row">
+        <button class="btn secondary" @onclick="ClearAll">Liste leeren</button>
+        <button class="btn" @onclick="AddTrip">Fahrt hinzufügen ✓</button>
+    </div>
+</div>
+
+@* ── Fahrtprotokoll ───────────────────────────────────────────────────── *@
+<div class="section-label">Fahrtprotokoll</div>
+
+@if (!State.Trips.Any())
+{
+    <div class="no-trips">Noch keine Fahrten eingetragen.</div>
+}
+else
+{
+    @foreach (var trip in State.Trips)
+    {
+        <div class="trip-item">
+            <div class="trip-left">
+                <span class="trip-date">@trip.Date.ToString("dd.MM.yyyy")</span>
+                <span class="trip-name">@(string.IsNullOrEmpty(trip.Name) ? "Fahrt" : trip.Name)</span>
+            </div>
+            <div class="trip-right">
+                <div class="trip-km">@trip.Km.ToString("F1") km</div>
+                @if (trip.BatteryUsedPercent.HasValue)
+                {
+                    <div class="trip-used">−@trip.BatteryUsedPercent% Akku</div>
+                }
+            </div>
+            <button class="trip-del" @onclick="() => DeleteTrip(trip.Id)" title="Löschen">✕</button>
+        </div>
+    }
+}
+
+@code {
+    private Toast? _toast;
+
+    private double? _km;
+    private string _name = "";
+    private DateTime _date = DateTime.Today;
+    private int? _battUsed;
+    private bool _kmError;
+
+    private async Task AddTrip()
+    {
+        _kmError = false;
+        if (!_km.HasValue || _km <= 0) { _kmError = true; return; }
+
+        State.AddTrip(new Trip
+        {
+            Km = _km.Value,
+            Name = _name.Trim(),
+            Date = _date,
+            BatteryUsedPercent = _battUsed
+        });
+
+        await State.SaveTripsAsync();
+        _km = null; _name = ""; _battUsed = null; _date = DateTime.Today;
+        _toast?.Show("Fahrt hinzugefügt! 🚴");
+    }
+
+    private async Task DeleteTrip(Guid id)
+    {
+        State.RemoveTrip(id);
+        await State.SaveTripsAsync();
+    }
+
+    private async Task ClearAll()
+    {
+        State.ClearTrips();
+        await State.SaveTripsAsync();
+        _toast?.Show("Liste geleert.");
+    }
+}

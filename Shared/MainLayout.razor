@@ -1,0 +1,35 @@
+@inherits LayoutComponentBase
+@inject BikeStateService State
+@inject NavigationManager Nav
+
+<div class="shell">
+    <header class="topbar">
+        <span class="topbar-icon">⚡</span>
+        <span class="topbar-title">E-Bike Tracker</span>
+        <span class="topbar-time">@DateTime.Now.ToString("HH:mm")</span>
+    </header>
+
+    <main class="content">
+        @Body
+    </main>
+
+    <nav class="bottom-nav">
+        <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
+            <span class="nav-icon">🚴</span>
+            <span class="nav-label">Fahrrad</span>
+        </NavLink>
+        <NavLink class="nav-item" href="kilometer">
+            <span class="nav-icon">📍</span>
+            <span class="nav-label">Kilometer</span>
+        </NavLink>
+        <NavLink class="nav-item" href="wartung">
+            <span class="nav-icon">🔧</span>
+            <span class="nav-label">Wartung</span>
+        </NavLink>
+    </nav>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync() =>
+        await State.LoadAsync();
+}

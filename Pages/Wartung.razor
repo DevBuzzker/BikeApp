@@ -1,0 +1,147 @@
+@page "/wartung"
+@inject BikeStateService State
+
+<PageTitle>Wartung – E-Bike Tracker</PageTitle>
+
+<Toast @ref="_toast" />
+
+@* ── Status Übersicht ─────────────────────────────────────────────────── *@
+<div class="section-label">Wartungsstatus</div>
+<div class="wartung-card">
+    <WartungRow Label="Aktuell"         Value="@($"{State.Maintenance.CurrentKm:F0} km")"     Status="MaintenanceStatus.Ok" ShowBadge="false" />
+    <WartungRow Label="Kettenwechsel"   Value="@FmtAt(State.Maintenance.ChainChangeAtKm)"   Status="State.Maintenance.GetStatus(State.Maintenance.ChainChangeAtKm)" />
+    <WartungRow Label="Inspektion"      Value="@FmtAt(State.Maintenance.InspectionAtKm)"    Status="State.Maintenance.GetStatus(State.Maintenance.InspectionAtKm)" />
+    <WartungRow Label="Reifenwechsel"   Value="@FmtAt(State.Maintenance.TireChangeAtKm)"    Status="State.Maintenance.GetStatus(State.Maintenance.TireChangeAtKm)" />
+    <WartungRow Label="Akkutausch"      Value="@FmtAt(State.Maintenance.BatteryReplaceAtKm)" Status="State.Maintenance.GetStatus(State.Maintenance.BatteryReplaceAtKm)" />
+    @if (!string.IsNullOrEmpty(State.BikeInfo.Model))
+    {
+        <WartungRow Label="Modell" Value="@State.BikeInfo.Model" Status="MaintenanceStatus.Ok" ShowBadge="false" />
+    }
+</div>
+
+@* ── Wartung eintragen ────────────────────────────────────────────────── *@
+<div class="section-label">Wartung eintragen</div>
+<div class="form-card">
+    <div class="input-row">
+        <span class="input-label">Aktueller Kilometerstand</span>
+        <div class="input-wrap">
+            <input type="number" min="0" @bind="_km"
+                   class="@(_kmError ? "error" : "")"
+                   placeholder="z.B. 1240" />
+            <span class="input-suffix">km</span>
+        </div>
+        @if (_kmError)
+        {
+            <div class="error-msg visible">Bitte einen gültigen Kilometerstand eingeben.</div>
+        }
+    </div>
+
+    <div class="input-row">
+        <span class="input-label">Kettenwechsel fällig bei (km)</span>
+        <div class="input-wrap">
+            <input type="number" min="0" @bind="_chain" placeholder="z.B. 1000" />
+            <span class="input-suffix">km</span>
+        </div>
+    </div>
+
+    <div class="input-row">
+        <span class="input-label">Nächste Inspektion bei (km)</span>
+        <div class="input-wrap">
+            <input type="number" min="0" @bind="_insp" placeholder="z.B. 2000" />
+            <span class="input-suffix">km</span>
+        </div>
+    </div>
+
+    <div class="input-row">
+        <span class="input-label">Reifenwechsel bei (km)</span>
+        <div class="input-wrap">
+            <input type="number" min="0" @bind="_tire" placeholder="z.B. 5000" />
+            <span class="input-suffix">km</span>
+        </div>
+    </div>
+
+    <div class="input-row">
+        <span class="input-label">Akkutausch bei (km)</span>
+        <div class="input-wrap">
+            <input type="number" min="0" @bind="_battReplace" placeholder="z.B. 15000" />
+            <span class="input-suffix">km</span>
+        </div>
+    </div>
+
+    <button class="btn" @onclick="SaveWartung">Wartung speichern ✓</button>
+</div>
+
+@* ── Fahrrad-Infos ────────────────────────────────────────────────────── *@
+<div class="section-label">Fahrrad-Infos</div>
+<div class="form-card">
+    <div class="input-row">
+        <span class="input-label">Modell / Name</span>
+        <input type="text" @bind="_model" placeholder="z.B. Trek Powerfly 5" />
+    </div>
+    <div class="input-row">
+        <span class="input-label">Kaufdatum</span>
+        <input type="date" @bind="_bought" />
+    </div>
+    <div class="input-row">
+        <span class="input-label">Seriennummer</span>
+        <input type="text" @bind="_serial" placeholder="z.B. WTU12345678" />
+        @if (_serialError)
+        {
+            <div class="error-msg visible">Seriennummer darf nicht leer sein.</div>
+        }
+    </div>
+    <button class="btn" @onclick="SaveBikeInfo">Info speichern ✓</button>
+</div>
+
+@code {
+    private Toast? _toast;
+
+    private double? _km;
+    private double? _chain, _insp, _tire, _battReplace;
+    private string _model = "", _serial = "";
+    private DateTime? _bought;
+    private bool _kmError, _serialError;
+
+    protected override void OnInitialized()
+    {
+        var m = State.Maintenance;
+        _km          = m.CurrentKm > 0 ? m.CurrentKm : null;
+        _chain       = m.ChainChangeAtKm;
+        _insp        = m.InspectionAtKm;
+        _tire        = m.TireChangeAtKm;
+        _battReplace = m.BatteryReplaceAtKm;
+
+        var b = State.BikeInfo;
+        _model  = b.Model;
+        _serial = b.SerialNumber;
+        _bought = b.PurchaseDate;
+    }
+
+    private async Task SaveWartung()
+    {
+        _kmError = false;
+        if (!_km.HasValue || _km < 0) { _kmError = true; return; }
+
+        State.Maintenance.CurrentKm          = _km.Value;
+        State.Maintenance.ChainChangeAtKm    = _chain;
+        State.Maintenance.InspectionAtKm     = _insp;
+        State.Maintenance.TireChangeAtKm     = _tire;
+        State.Maintenance.BatteryReplaceAtKm = _battReplace;
+
+        await State.SaveMaintenanceAsync();
+        _toast?.Show("Wartung gespeichert! 🔧");
+    }
+
+    private async Task SaveBikeInfo()
+    {
+        _serialError = false;
+        State.BikeInfo.Model        = _model.Trim();
+        State.BikeInfo.PurchaseDate = _bought;
+        State.BikeInfo.SerialNumber = _serial.Trim();
+
+        await State.SaveBikeInfoAsync();
+        _toast?.Show("Info gespeichert! 🚲");
+    }
+
+    private static string FmtAt(double? km) => km.HasValue ? $"bei {km:F0} km" : "—";
+}

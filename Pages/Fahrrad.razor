@@ -1,0 +1,210 @@
+@page "/"
+@inject BikeStateService State
+
+<PageTitle>Fahrrad – E-Bike Tracker</PageTitle>
+
+<Toast @ref="_toast" />
+
+@* ── Akkustand Anzeige ─────────────────────────────────────────────────── *@
+<div class="section-label">Akkustand</div>
+<div class="battery-card">
+    <div class="battery-ring-wrap">
+        <BatteryRing Percent="State.Battery.Percent" />
+
+        <div class="battery-stats">
+            <div class="stat-row">
+                <span class="stat-label">Reichweite ca.</span>
+                <span class="stat-val accent">
+                    @(State.Battery.CurrentRangeKm.HasValue
+                        ? $"{State.Battery.CurrentRangeKm:F1} km"
+                        : "— km")
+                </span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Kapazität</span>
+                <span class="stat-val">
+                    @(State.Battery.CurrentWh.HasValue
+                        ? $"{State.Battery.CurrentWh:F0} Wh"
+                        : "— Wh")
+                </span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Zuletzt geladen</span>
+                <span class="stat-val" style="font-size:13px">
+                    @(State.Battery.LastCharged.HasValue
+                        ? State.Battery.LastCharged.Value.ToString("dd.MM.yyyy")
+                        : "—")
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @* Ladezeit bis 100% *@
+    <div class="charge-info">
+        <span class="charge-icon">🔋</span>
+        <div class="charge-text">
+            <div class="charge-duration">@FormatDuration(State.Battery.ChargeTimeToFull)</div>
+            <div class="charge-sub">Ladezeit bis 100%</div>
+            <div class="charge-until">
+                @if (State.Battery.Percent.HasValue && State.Battery.Percent < 100)
+                {
+                    <span>Fertig gegen @DateTime.Now.Add(State.Battery.ChargeTimeToFull).ToString("HH:mm") Uhr</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Eingabe ──────────────────────────────────────────────────────────── *@
+<div class="section-label">Akkustand eingeben</div>
+<div class="form-card">
+    @* Slider *@
+    <div class="input-row">
+        <span class="input-label">Aktueller Akkustand</span>
+        <div class="slider-wrap">
+            <div class="slider-val">@_sliderPct%</div>
+            <input type="range" min="0" max="100" step="1"
+                   value="@_sliderPct"
+                   @oninput="OnSliderChange" />
+            <div class="slider-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+        </div>
+    </div>
+
+    @* Direkte Eingabe *@
+    <div class="input-row">
+        <span class="input-label">Oder direkt eingeben (0–100)</span>
+        <div class="input-wrap">
+            <input type="number" min="0" max="100"
+                   @bind="_inputPct" @bind:event="oninput"
+                   @onchange="OnInputChange"
+                   class="@(_pctError ? "error" : "")"
+                   placeholder="0–100" />
+            <span class="input-suffix">%</span>
+        </div>
+        @if (_pctError)
+        {
+            <div class="error-msg visible">Bitte einen Wert zwischen 0 und 100 eingeben.</div>
+        }
+    </div>
+
+    <div class="input-row">
+        <span class="input-label">Batteriekapazität (Wh)</span>
+        <div class="input-wrap">
+            <input type="number" min="0" @bind="_inputCap"
+                   class="@(_capError ? "error" : "")"
+                   placeholder="z.B. 630" />
+            <span class="input-suffix">Wh</span>
+        </div>
+        @if (_capError)
+        {
+            <div class="error-msg visible">Bitte eine gültige Kapazität eingeben.</div>
+        }
+    </div>
+
+    <div class="input-row">
+        <span class="input-label">Reichweite bei 100% (km)</span>
+        <div class="input-wrap">
+            <input type="number" min="0" @bind="_inputRange" placeholder="z.B. 80" />
+            <span class="input-suffix">km</span>
+        </div>
+    </div>
+
+    <button class="btn" @onclick="SaveBattery">Speichern ✓</button>
+</div>
+
+@* ── Zielladung ───────────────────────────────────────────────────────── *@
+<div class="section-label">Zielladung berechnen</div>
+<div class="form-card">
+    <div class="input-row">
+        <span class="input-label">Laden bis — Ziel</span>
+        <div class="slider-wrap">
+            <div class="slider-val">@_targetPct%</div>
+            <input type="range" min="0" max="100" step="1"
+                   value="@_targetPct"
+                   @oninput="e => _targetPct = int.Parse(e.Value!.ToString()!)" />
+            <div class="slider-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+        </div>
+    </div>
+    <div class="charge-info" style="margin-top:0">
+        <span class="charge-icon">⚡</span>
+        <div class="charge-text">
+            <div class="charge-duration" style="color:var(--accent2)">
+                @FormatDuration(State.Battery.ChargeTimeTo(_targetPct))
+            </div>
+            <div class="charge-sub">Ladezeit für Ziel @_targetPct%</div>
+            <div class="charge-until">
+                @{
+                    var secs = State.Battery.ChargeTimeTo(_targetPct);
+                    if (secs.TotalSeconds > 0)
+                    {
+                        <span>Fertig gegen @DateTime.Now.Add(secs).ToString("HH:mm") Uhr</span>
+                    }
+                    else
+                    {
+                        <span>Bereits erreicht ✓</span>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Toast? _toast;
+
+    private int _sliderPct = 50;
+    private int? _inputPct;
+    private double? _inputCap;
+    private double? _inputRange;
+    private int _targetPct = 100;
+
+    private bool _pctError;
+    private bool _capError;
+
+    protected override void OnInitialized()
+    {
+        _sliderPct   = State.Battery.Percent ?? 50;
+        _inputPct    = State.Battery.Percent;
+        _inputCap    = State.Battery.CapacityWh;
+        _inputRange  = State.Battery.RangeKm;
+    }
+
+    private void OnSliderChange(ChangeEventArgs e)
+    {
+        _sliderPct = int.Parse(e.Value!.ToString()!);
+        _inputPct  = _sliderPct;
+    }
+
+    private void OnInputChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int v) && v is >= 0 and <= 100)
+        {
+            _sliderPct = v;
+            _inputPct  = v;
+        }
+    }
+
+    private async Task SaveBattery()
+    {
+        _pctError = _capError = false;
+
+        int pct = _inputPct ?? _sliderPct;
+        if (pct is < 0 or > 100) { _pctError = true; return; }
+        if (_inputCap.HasValue && _inputCap <= 0) { _capError = true; return; }
+
+        State.Battery.Percent     = pct;
+        State.Battery.CapacityWh  = _inputCap  ?? State.Battery.CapacityWh;
+        State.Battery.RangeKm     = _inputRange ?? State.Battery.RangeKm;
+        State.Battery.LastCharged = DateTime.Now;
+
+        await State.SaveBatteryAsync();
+        _toast?.Show("Gespeichert! ⚡");
+    }
+
+    private static string FormatDuration(TimeSpan ts)
+    {
+        if (ts.TotalMinutes < 1) return "0 min";
+        if (ts.TotalHours < 1)   return $"{(int)ts.TotalMinutes} min";
+        return $"{(int)ts.TotalHours} h {ts.Minutes} min";
+    }
+}

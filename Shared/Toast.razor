@@ -1,0 +1,27 @@
+@if (_visible)
+{
+    <div class="toast show">@_message</div>
+}
+
+@code {
+    private bool _visible;
+    private string _message = "";
+    private System.Timers.Timer? _timer;
+
+    public void Show(string message)
+    {
+        _message = message;
+        _visible = true;
+        _timer?.Dispose();
+        _timer = new System.Timers.Timer(2200);
+        _timer.Elapsed += (_, _) =>
+        {
+            _visible = false;
+            _timer?.Dispose();
+            InvokeAsync(StateHasChanged);
+        };
+        _timer.AutoReset = false;
+        _timer.Start();
+        StateHasChanged();
+    }
+}

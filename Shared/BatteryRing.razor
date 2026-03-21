@@ -1,0 +1,35 @@
+@* Reusable SVG battery ring *@
+
+<div class="battery-ring">
+    <svg width="110" height="110" viewBox="0 0 110 110">
+        <circle class="ring-bg" cx="55" cy="55" r="45"
+                fill="none" stroke="#21262d" stroke-width="10" />
+        <circle class="ring-fill" cx="55" cy="55" r="45"
+                fill="none" stroke-width="10" stroke-linecap="round"
+                stroke="@Color"
+                stroke-dasharray="@Circumference"
+                stroke-dashoffset="@Offset"
+                style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .6s ease" />
+    </svg>
+    <div class="ring-center">
+        <span class="ring-pct" style="color:@Color">@(Percent.HasValue ? Percent + "" : "—")</span>
+        <span class="ring-unit">%</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int? Percent { get; set; }
+
+    private const double Circumference = 2 * Math.PI * 45; // ≈282.7
+
+    private string Color => Percent switch
+    {
+        <= 20 => "#f85149",
+        <= 50 => "#f0883e",
+        _     => "#39d353"
+    };
+
+    private string Offset => Percent.HasValue
+        ? (Circumference * (1.0 - Percent.Value / 100.0)).ToString("F1", System.Globalization.CultureInfo.InvariantCulture)
+        : Circumference.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+}

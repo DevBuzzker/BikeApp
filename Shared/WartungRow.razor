@@ -1,0 +1,35 @@
+@* Reusable row for the maintenance status card *@
+
+<div class="wartung-row">
+    <span class="wartung-label">@Label</span>
+    <div style="display:flex;align-items:center;gap:8px">
+        <span class="wartung-val">@Value</span>
+        @if (ShowBadge)
+        {
+            <span class="status-badge @BadgeClass">@BadgeText</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Label    { get; set; } = "";
+    [Parameter] public string Value    { get; set; } = "";
+    [Parameter] public MaintenanceStatus Status { get; set; }
+    [Parameter] public bool ShowBadge  { get; set; } = true;
+
+    private string BadgeClass => Status switch
+    {
+        MaintenanceStatus.Ok   => "badge-ok",
+        MaintenanceStatus.Soon => "badge-soon",
+        MaintenanceStatus.Due  => "badge-due",
+        _                      => ""
+    };
+
+    private string BadgeText => Status switch
+    {
+        MaintenanceStatus.Ok   => "OK",
+        MaintenanceStatus.Soon => "Bald",
+        MaintenanceStatus.Due  => "Fällig",
+        _                      => ""
+    };
+}
