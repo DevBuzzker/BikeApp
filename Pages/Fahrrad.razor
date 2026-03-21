@@ -39,10 +39,9 @@
         </div>
     </div>
 
-    @* Ladezeit bis 100% *@
-    <div class="charge-info">
-        <span class="charge-icon">🔋</span>
-        <div class="charge-text">
+    @* Ladezeit — zwei Spalten *@
+    <div class="charge-split">
+        <div class="charge-col">
             <div class="charge-duration">@FormatDuration(State.Battery.ChargeTimeToFull)</div>
             <div class="charge-sub">Ladezeit bis 100%</div>
             <div class="charge-until">
@@ -52,6 +51,25 @@
                 }
             </div>
         </div>
+        @if (State.Battery.TargetPercent < 100)
+        {
+            <div class="charge-divider"></div>
+            <div class="charge-col">
+                @{ var toTarget = State.Battery.ChargeTimeTo(State.Battery.TargetPercent); }
+                <div class="charge-duration" style="color:var(--accent2)">@FormatDuration(toTarget)</div>
+                <div class="charge-sub">Ladezeit bis @(State.Battery.TargetPercent)%</div>
+                <div class="charge-until">
+                    @if (toTarget.TotalSeconds > 0)
+                    {
+                        <span>Fertig gegen @DateTime.Now.Add(toTarget).ToString("HH:mm") Uhr</span>
+                    }
+                    else
+                    {
+                        <span>Bereits erreicht ✓</span>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>
 
