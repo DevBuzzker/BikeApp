@@ -80,6 +80,20 @@
     </div>
 </div>
 
+@* ── Delete confirmation ──────────────────────────────────────────────── *@
+@if (_confirmDeleteId.HasValue)
+{
+    <div class="confirm-overlay" @onclick="CancelDelete">
+        <div class="confirm-box" @onclick:stopPropagation>
+            <div class="confirm-text">Fahrt wirklich löschen?</div>
+            <div class="btn-row">
+                <button class="btn secondary" @onclick="CancelDelete">Abbrechen</button>
+                <button class="btn btn-danger" @onclick="ConfirmDeleteYes">Löschen</button>
+            </div>
+        </div>
+    </div>
+}
+
 @* ── Fahrtprotokoll ───────────────────────────────────────────────────── *@
 <div class="section-label">Fahrtprotokoll</div>
 
@@ -131,7 +145,10 @@ else
                 </div>
                 <button class="trip-edit" @onclick="() => StartEdit(trip)" title="Bearbeiten">✏️</button>
             }
-            <button class="trip-del" @onclick="() => DeleteTrip(trip.Id)" title="Löschen">✕</button>
+            @if (_editId != trip.Id)
+            {
+                <button class="trip-del" @onclick="() => ConfirmDelete(trip.Id)" title="Löschen">🗑️</button>
+            }
         </div>
     }
 }
@@ -150,6 +167,7 @@ else
 
     // Edit state
     private Guid? _editId;
+    private Guid? _confirmDeleteId;
     private double? _editKm;
     private string _editName = "";
     private DateTime _editDate;
@@ -202,10 +220,17 @@ else
         _toast?.Show("Gespeichert ✓");
     }
 
-    private async Task DeleteTrip(Guid id)
+    private void ConfirmDelete(Guid id) => _confirmDeleteId = id;
+    private void CancelDelete() => _confirmDeleteId = null;
+
+    private async Task ConfirmDeleteYes()
     {
-        State.RemoveTrip(id);
-        await State.SaveTripsAsync();
+        if (_confirmDeleteId.HasValue)
+        {
+            State.RemoveTrip(_confirmDeleteId.Value);
+            await State.SaveTripsAsync();
+            _confirmDeleteId = null;
+        }
     }
 
     private async Task ClearAll()
