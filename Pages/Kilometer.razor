@@ -50,6 +50,12 @@
     <div class="input-row">
         <span class="input-label">Name / Beschreibung (optional)</span>
         <input type="text" @bind="_name" placeholder="z.B. Arbeit, Einkaufen..." />
+        <div class="quick-tags">
+            @foreach (var tag in _quickTags)
+            {
+                <button class="quick-tag" type="button" @onclick="() => _name = tag">@tag</button>
+            }
+        </div>
     </div>
 
     <div class="input-row">
@@ -101,6 +107,8 @@ else
 
 @code {
     private Toast? _toast;
+
+    private readonly string[] _quickTags = ["Arbeit", "Einkaufen", "Spazierfahrt", "Sport", "Ausflug"];
 
     private double? _km;
     private string _name = "";
