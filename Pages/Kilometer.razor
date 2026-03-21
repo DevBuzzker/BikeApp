@@ -50,13 +50,36 @@
     <div class="input-row">
         <span class="input-label">Name / Beschreibung (optional)</span>
         <input type="text" @bind="_name" placeholder="z.B. Arbeit, Einkaufen..." />
-        <div class="quick-tags">
-            @foreach (var tag in SortedTags)
-            {
-                <button class="quick-tag @(_name.Trim() == tag ? "active" : "")"
-                        type="button" @onclick="() => _name = tag">@tag</button>
-            }
-        </div>
+
+        @if (_editingTags)
+        {
+            <div class="tag-editor">
+                @for (int i = 0; i < _editableTags.Count; i++)
+                {
+                    var idx = i;
+                    <div class="tag-editor-row">
+                        <input type="text" @bind="_editableTags[idx]" placeholder="Tag name" />
+                        <button class="tag-remove" type="button" @onclick="() => _editableTags.RemoveAt(idx)">✕</button>
+                    </div>
+                }
+                <button class="quick-tag" type="button" @onclick="() => _editableTags.Add('')">+ Hinzufügen</button>
+                <div class="btn-row" style="margin-top:8px">
+                    <button class="btn secondary" style="padding:8px" @onclick="CancelTagEdit">Abbrechen</button>
+                    <button class="btn" style="padding:8px" @onclick="SaveTags">Speichern ✓</button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="quick-tags">
+                @foreach (var tag in SortedTags)
+                {
+                    <button class="quick-tag @(_name.Trim() == tag ? "active" : "")"
+                            type="button" @onclick="() => _name = tag">@tag</button>
+                }
+                <button class="quick-tag tag-edit-btn" type="button" @onclick="StartTagEdit" title="Tags bearbeiten">✏️</button>
+            </div>
+        }
     </div>
 
     <div class="input-row">
@@ -157,9 +180,11 @@ else
 @code {
     private Toast? _toast;
 
-    private static readonly string[] _allTags = ["Arbeit", "Einkaufen", "Spazierfahrt", "Sport", "Ausflug"];
     private IEnumerable<string> SortedTags =>
-        _allTags.OrderByDescending(t => State.KmPrefs.TagUsage.GetValueOrDefault(t));
+        State.KmPrefs.Tags.OrderByDescending(t => State.KmPrefs.TagUsage.GetValueOrDefault(t));
+
+    private bool _editingTags;
+    private List<string> _editableTags = [];
 
     private double? _km;
     private string _name = "";
@@ -176,6 +201,24 @@ else
     private DateTime _editDate;
     private TimeOnly _editTime;
     private int? _editBatt;
+
+    private void StartTagEdit()
+    {
+        _editableTags = [.. State.KmPrefs.Tags];
+        _editingTags  = true;
+    }
+
+    private void CancelTagEdit() => _editingTags = false;
+
+    private async Task SaveTags()
+    {
+        State.KmPrefs.Tags = _editableTags.Select(t => t.Trim()).Where(t => t.Length > 0).Distinct().ToList();
+        // clean up usage for removed tags
+        var removed = State.KmPrefs.TagUsage.Keys.Except(State.KmPrefs.Tags).ToList();
+        removed.ForEach(k => State.KmPrefs.TagUsage.Remove(k));
+        await State.SaveKmPrefsAsync();
+        _editingTags = false;
+    }
 
     protected override void OnInitialized()
     {
@@ -201,7 +244,7 @@ else
         // update prefs
         State.KmPrefs.LastKm   = _km.Value;
         State.KmPrefs.LastName = trimmedName;
-        if (_allTags.Contains(trimmedName))
+        if (State.KmPrefs.Tags.Contains(trimmedName))
         {
             State.KmPrefs.TagUsage[trimmedName] =
                 State.KmPrefs.TagUsage.GetValueOrDefault(trimmedName) + 1;
