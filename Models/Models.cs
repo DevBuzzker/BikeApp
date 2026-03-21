@@ -70,6 +70,13 @@ public class MaintenanceData
 
 public enum MaintenanceStatus { Unknown, Ok, Soon, Due }
 
+public class KilometerPrefs
+{
+    public double? LastKm { get; set; }
+    public string LastName { get; set; } = "";
+    public Dictionary<string, int> TagUsage { get; set; } = new();
+}
+
 public class BikeInfo
 {
     public string Model { get; set; } = "";

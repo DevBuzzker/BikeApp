@@ -51,9 +51,10 @@
         <span class="input-label">Name / Beschreibung (optional)</span>
         <input type="text" @bind="_name" placeholder="z.B. Arbeit, Einkaufen..." />
         <div class="quick-tags">
-            @foreach (var tag in _quickTags)
+            @foreach (var tag in SortedTags)
             {
-                <button class="quick-tag" type="button" @onclick="() => _name = tag">@tag</button>
+                <button class="quick-tag @(_name.Trim() == tag ? "active" : "")"
+                        type="button" @onclick="() => _name = tag">@tag</button>
             }
         </div>
     </div>
@@ -156,7 +157,9 @@ else
 @code {
     private Toast? _toast;
 
-    private readonly string[] _quickTags = ["Arbeit", "Einkaufen", "Spazierfahrt", "Sport", "Ausflug"];
+    private static readonly string[] _allTags = ["Arbeit", "Einkaufen", "Spazierfahrt", "Sport", "Ausflug"];
+    private IEnumerable<string> SortedTags =>
+        _allTags.OrderByDescending(t => State.KmPrefs.TagUsage.GetValueOrDefault(t));
 
     private double? _km;
     private string _name = "";
@@ -174,20 +177,37 @@ else
     private TimeOnly _editTime;
     private int? _editBatt;
 
+    protected override void OnInitialized()
+    {
+        _km   = State.KmPrefs.LastKm;
+        _name = State.KmPrefs.LastName;
+    }
+
     private async Task AddTrip()
     {
         _kmError = false;
         if (!_km.HasValue || _km <= 0) { _kmError = true; return; }
 
+        var trimmedName = _name.Trim();
+
         State.AddTrip(new Trip
         {
             Km = _km.Value,
-            Name = _name.Trim(),
+            Name = trimmedName,
             Date = _date.Date + _time.ToTimeSpan(),
             BatteryUsedPercent = _battUsed
         });
 
-        await State.SaveTripsAsync();
+        // update prefs
+        State.KmPrefs.LastKm   = _km.Value;
+        State.KmPrefs.LastName = trimmedName;
+        if (_allTags.Contains(trimmedName))
+        {
+            State.KmPrefs.TagUsage[trimmedName] =
+                State.KmPrefs.TagUsage.GetValueOrDefault(trimmedName) + 1;
+        }
+
+        await Task.WhenAll(State.SaveTripsAsync(), State.SaveKmPrefsAsync());
         _km = null; _name = ""; _battUsed = null;
         _date = DateTime.Today; _time = TimeOnly.FromDateTime(DateTime.Now);
         _toast?.Show("Fahrt hinzugefügt! 🚴");
