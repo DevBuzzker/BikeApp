@@ -144,7 +144,7 @@ else
     private double? _km;
     private string _name = "";
     private DateTime _date = DateTime.Today;
-    private TimeSpan _time = DateTime.Now.TimeOfDay;
+    private TimeOnly _time = TimeOnly.FromDateTime(DateTime.Now);
     private int? _battUsed;
     private bool _kmError;
 
@@ -153,7 +153,7 @@ else
     private double? _editKm;
     private string _editName = "";
     private DateTime _editDate;
-    private TimeSpan _editTime;
+    private TimeOnly _editTime;
     private int? _editBatt;
 
     private async Task AddTrip()
@@ -165,13 +165,13 @@ else
         {
             Km = _km.Value,
             Name = _name.Trim(),
-            Date = _date.Date + _time,
+            Date = _date.Date + _time.ToTimeSpan(),
             BatteryUsedPercent = _battUsed
         });
 
         await State.SaveTripsAsync();
         _km = null; _name = ""; _battUsed = null;
-        _date = DateTime.Today; _time = DateTime.Now.TimeOfDay;
+        _date = DateTime.Today; _time = TimeOnly.FromDateTime(DateTime.Now);
         _toast?.Show("Fahrt hinzugefügt! 🚴");
     }
 
@@ -181,7 +181,7 @@ else
         _editKm   = trip.Km;
         _editName = trip.Name;
         _editDate = trip.Date.Date;
-        _editTime = trip.Date.TimeOfDay;
+        _editTime = TimeOnly.FromDateTime(trip.Date);
         _editBatt = trip.BatteryUsedPercent;
     }
 
@@ -194,7 +194,7 @@ else
 
         trip.Km                 = _editKm.Value;
         trip.Name               = _editName.Trim();
-        trip.Date               = _editDate.Date + _editTime;
+        trip.Date               = _editDate.Date + _editTime.ToTimeSpan();
         trip.BatteryUsedPercent = _editBatt;
 
         await State.SaveTripsAsync();
