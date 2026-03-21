@@ -104,8 +104,18 @@
     <div class="input-row">
         <span class="input-label">Reichweite bei 100% (km)</span>
         <div class="input-wrap">
-            <input type="number" min="0" @bind="_inputRange" placeholder="z.B. 80" />
+            <input type="number" min="0" @bind="_inputRange" placeholder="z.B. 42" />
             <span class="input-suffix">km</span>
+        </div>
+    </div>
+
+    <div class="input-row">
+        <span class="input-label">Ladezeit pro 1% (min / sek)</span>
+        <div class="input-wrap-split">
+            <input type="number" min="0" @bind="_chargeMin" placeholder="1" />
+            <span class="input-suffix-small">min</span>
+            <input type="number" min="0" max="59" @bind="_chargeSec" placeholder="22" />
+            <span class="input-suffix-small">sek</span>
         </div>
     </div>
 
@@ -157,6 +167,8 @@
     private double? _inputCap;
     private double? _inputRange;
     private int _targetPct = 100;
+    private int _chargeMin = 1;
+    private int _chargeSec = 22;
 
     private bool _pctError;
     private bool _capError;
@@ -166,7 +178,9 @@
         _sliderPct   = State.Battery.Percent ?? 50;
         _inputPct    = State.Battery.Percent;
         _inputCap    = State.Battery.CapacityWh;
-        _inputRange  = State.Battery.RangeKm;
+        _inputRange  = State.Battery.RangeKm ?? 42;
+        _chargeMin   = State.Battery.SecondsPerPercent / 60;
+        _chargeSec   = State.Battery.SecondsPerPercent % 60;
     }
 
     private void OnSliderChange(ChangeEventArgs e)
@@ -192,10 +206,11 @@
         if (pct is < 0 or > 100) { _pctError = true; return; }
         if (_inputCap.HasValue && _inputCap <= 0) { _capError = true; return; }
 
-        State.Battery.Percent     = pct;
-        State.Battery.CapacityWh  = _inputCap  ?? State.Battery.CapacityWh;
-        State.Battery.RangeKm     = _inputRange ?? State.Battery.RangeKm;
-        State.Battery.LastCharged = DateTime.Now;
+        State.Battery.Percent          = pct;
+        State.Battery.CapacityWh       = _inputCap  ?? State.Battery.CapacityWh;
+        State.Battery.RangeKm          = _inputRange ?? State.Battery.RangeKm;
+        State.Battery.SecondsPerPercent = _chargeMin * 60 + _chargeSec;
+        State.Battery.LastCharged      = DateTime.Now;
 
         await State.SaveBatteryAsync();
         _toast?.Show("Gespeichert! ⚡");

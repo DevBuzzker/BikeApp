@@ -4,11 +4,11 @@ public class BatteryState
 {
     public int? Percent { get; set; }
     public double? CapacityWh { get; set; }
-    public double? RangeKm { get; set; }
+    public double? RangeKm { get; set; } = 42;
     public DateTime? LastCharged { get; set; }
 
-    // 1% = 1 min 22 sec = 82 seconds
-    public static readonly int SecondsPerPercent = 82;
+    // 1% = 1 min 22 sec = 82 seconds (editable)
+    public int SecondsPerPercent { get; set; } = 82;
 
     public TimeSpan ChargeTimeToFull =>
         Percent.HasValue
