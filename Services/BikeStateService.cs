@@ -12,6 +12,7 @@ public class BikeStateService(StorageService storage)
     public List<Trip> Trips { get; private set; } = [];
     public MaintenanceData Maintenance { get; private set; } = new();
     public BikeInfo BikeInfo { get; private set; } = new();
+    public KilometerPrefs KmPrefs { get; private set; } = new();
 
     public event Action? StateChanged;
 
@@ -21,6 +22,7 @@ public class BikeStateService(StorageService storage)
         Trips       = await storage.GetAsync<List<Trip>>("ebike_trips")     ?? [];
         Maintenance = await storage.GetAsync<MaintenanceData>("ebike_maint")  ?? new();
         BikeInfo    = await storage.GetAsync<BikeInfo>("ebike_info")          ?? new();
+        KmPrefs     = await storage.GetAsync<KilometerPrefs>("ebike_kmprefs") ?? new();
         StateChanged?.Invoke();
     }
 
@@ -45,6 +47,12 @@ public class BikeStateService(StorageService storage)
     public async Task SaveBikeInfoAsync()
     {
         await storage.SetAsync("ebike_info", BikeInfo);
+        StateChanged?.Invoke();
+    }
+
+    public async Task SaveKmPrefsAsync()
+    {
+        await storage.SetAsync("ebike_kmprefs", KmPrefs);
         StateChanged?.Invoke();
     }
 
