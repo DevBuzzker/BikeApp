@@ -65,6 +65,7 @@
             <div class="slider-val">@_sliderPct%</div>
             <input type="range" min="0" max="100" step="1"
                    value="@_sliderPct"
+                   style="--pct: @(_sliderPct)%"
                    @oninput="OnSliderChange" />
             <div class="slider-labels"><span>0%</span><span>50%</span><span>100%</span></div>
         </div>
@@ -131,7 +132,8 @@
             <div class="slider-val">@_targetPct%</div>
             <input type="range" min="0" max="100" step="1"
                    value="@_targetPct"
-                   @oninput="e => _targetPct = int.Parse(e.Value!.ToString()!)" />
+                   style="--pct: @(_targetPct)%"
+                   @oninput="OnTargetChange" />
             <div class="slider-labels"><span>0%</span><span>50%</span><span>100%</span></div>
         </div>
     </div>
@@ -181,12 +183,20 @@
         _inputRange  = State.Battery.RangeKm ?? 42;
         _chargeMin   = State.Battery.SecondsPerPercent / 60;
         _chargeSec   = State.Battery.SecondsPerPercent % 60;
+        _targetPct   = State.Battery.TargetPercent;
     }
 
     private void OnSliderChange(ChangeEventArgs e)
     {
         _sliderPct = int.Parse(e.Value!.ToString()!);
         _inputPct  = _sliderPct;
+    }
+
+    private async Task OnTargetChange(ChangeEventArgs e)
+    {
+        _targetPct = int.Parse(e.Value!.ToString()!);
+        State.Battery.TargetPercent = _targetPct;
+        await State.SaveBatteryAsync();
     }
 
     private void OnInputChange(ChangeEventArgs e)

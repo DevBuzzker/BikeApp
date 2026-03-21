@@ -9,6 +9,7 @@ public class BatteryState
 
     // 1% = 1 min 22 sec = 82 seconds (editable)
     public int SecondsPerPercent { get; set; } = 82;
+    public int TargetPercent { get; set; } = 100;
 
     public TimeSpan ChargeTimeToFull =>
         Percent.HasValue

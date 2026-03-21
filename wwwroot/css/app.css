@@ -126,7 +126,14 @@ input[type="range"] {
   cursor: pointer; -webkit-appearance: none; appearance: none;
 }
 input[type="range"]::-webkit-slider-runnable-track {
-  height: 4px; background: var(--bg3); border-radius: 2px;
+  height: 4px; border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) var(--pct, 50%), var(--bg3) var(--pct, 50%));
+}
+input[type="range"]::-moz-range-track {
+  height: 4px; border-radius: 2px; background: var(--bg3);
+}
+input[type="range"]::-moz-range-progress {
+  height: 4px; border-radius: 2px; background: var(--accent);
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; width: 20px; height: 20px;
