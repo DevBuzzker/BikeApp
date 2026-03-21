@@ -59,8 +59,11 @@
     </div>
 
     <div class="input-row">
-        <span class="input-label">Datum</span>
-        <input type="date" @bind="_date" />
+        <span class="input-label">Datum & Uhrzeit</span>
+        <div class="input-wrap-split">
+            <input type="date" lang="de-DE" @bind="_date" style="flex:2" />
+            <input type="time" @bind="_time" style="flex:1" />
+        </div>
     </div>
 
     <div class="input-row">
@@ -88,18 +91,46 @@ else
 {
     @foreach (var trip in State.Trips)
     {
-        <div class="trip-item">
-            <div class="trip-left">
-                <span class="trip-date">@trip.Date.ToString("dd.MM.yyyy")</span>
-                <span class="trip-name">@(string.IsNullOrEmpty(trip.Name) ? "Fahrt" : trip.Name)</span>
-            </div>
-            <div class="trip-right">
-                <div class="trip-km">@trip.Km.ToString("F1") km</div>
-                @if (trip.BatteryUsedPercent.HasValue)
-                {
-                    <div class="trip-used">−@trip.BatteryUsedPercent% Akku</div>
-                }
-            </div>
+        <div class="trip-item @(_editId == trip.Id ? "trip-editing" : "")">
+            @if (_editId == trip.Id)
+            {
+                @* ── Edit-Modus ── *@
+                <div class="trip-edit-form">
+                    <div class="input-wrap-split">
+                        <input type="number" min="0" step="0.1" @bind="_editKm" placeholder="km" style="flex:1" />
+                        <span class="input-suffix-small">km</span>
+                        <input type="text" @bind="_editName" placeholder="Name" style="flex:2" />
+                    </div>
+                    <div class="input-wrap-split" style="margin-top:8px">
+                        <input type="date" lang="de-DE" @bind="_editDate" style="flex:2" />
+                        <input type="time" @bind="_editTime" style="flex:1" />
+                    </div>
+                    <div class="input-wrap-split" style="margin-top:8px">
+                        <input type="number" min="0" max="100" @bind="_editBatt" placeholder="Akku %" style="flex:1" />
+                        <span class="input-suffix-small">%</span>
+                    </div>
+                    <div class="btn-row" style="margin-top:10px">
+                        <button class="btn secondary" style="padding:8px" @onclick="CancelEdit">Abbrechen</button>
+                        <button class="btn" style="padding:8px" @onclick="() => SaveEdit(trip.Id)">Speichern ✓</button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @* ── Anzeigemodus ── *@
+                <div class="trip-left">
+                    <span class="trip-date">@trip.Date.ToString("dd.MM.yyyy HH:mm")</span>
+                    <span class="trip-name">@(string.IsNullOrEmpty(trip.Name) ? "Fahrt" : trip.Name)</span>
+                </div>
+                <div class="trip-right">
+                    <div class="trip-km">@trip.Km.ToString("F1") km</div>
+                    @if (trip.BatteryUsedPercent.HasValue)
+                    {
+                        <div class="trip-used">−@trip.BatteryUsedPercent% Akku</div>
+                    }
+                </div>
+                <button class="trip-edit" @onclick="() => StartEdit(trip)" title="Bearbeiten">✏️</button>
+            }
             <button class="trip-del" @onclick="() => DeleteTrip(trip.Id)" title="Löschen">✕</button>
         </div>
     }
@@ -113,8 +144,17 @@ else
     private double? _km;
     private string _name = "";
     private DateTime _date = DateTime.Today;
+    private TimeOnly _time = TimeOnly.FromDateTime(DateTime.Now);
     private int? _battUsed;
     private bool _kmError;
+
+    // Edit state
+    private Guid? _editId;
+    private double? _editKm;
+    private string _editName = "";
+    private DateTime _editDate;
+    private TimeOnly _editTime;
+    private int? _editBatt;
 
     private async Task AddTrip()
     {
@@ -125,13 +165,41 @@ else
         {
             Km = _km.Value,
             Name = _name.Trim(),
-            Date = _date,
+            Date = _date.Date + _time.ToTimeSpan(),
             BatteryUsedPercent = _battUsed
         });
 
         await State.SaveTripsAsync();
-        _km = null; _name = ""; _battUsed = null; _date = DateTime.Today;
+        _km = null; _name = ""; _battUsed = null;
+        _date = DateTime.Today; _time = TimeOnly.FromDateTime(DateTime.Now);
         _toast?.Show("Fahrt hinzugefügt! 🚴");
+    }
+
+    private void StartEdit(Trip trip)
+    {
+        _editId   = trip.Id;
+        _editKm   = trip.Km;
+        _editName = trip.Name;
+        _editDate = trip.Date.Date;
+        _editTime = TimeOnly.FromDateTime(trip.Date);
+        _editBatt = trip.BatteryUsedPercent;
+    }
+
+    private void CancelEdit() => _editId = null;
+
+    private async Task SaveEdit(Guid id)
+    {
+        var trip = State.Trips.FirstOrDefault(t => t.Id == id);
+        if (trip == null || !_editKm.HasValue || _editKm <= 0) return;
+
+        trip.Km                 = _editKm.Value;
+        trip.Name               = _editName.Trim();
+        trip.Date               = _editDate.Date + _editTime.ToTimeSpan();
+        trip.BatteryUsedPercent = _editBatt;
+
+        await State.SaveTripsAsync();
+        _editId = null;
+        _toast?.Show("Gespeichert ✓");
     }
 
     private async Task DeleteTrip(Guid id)

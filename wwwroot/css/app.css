@@ -113,7 +113,8 @@ html, body {
 
 input[type="number"],
 input[type="text"],
-input[type="date"] {
+input[type="date"],
+input[type="time"] {
   width: 100%;
   background: var(--bg3); border: 1px solid var(--border);
   border-radius: 8px; color: var(--text);
@@ -121,6 +122,7 @@ input[type="date"] {
   padding: 10px 40px 10px 14px;
   outline: none; transition: border-color .2s;
   -webkit-appearance: none; appearance: none;
+  color-scheme: dark;
 }
 input:focus      { border-color: var(--accent2); }
 input.error      { border-color: var(--danger) !important; animation: shake .3s; }
@@ -207,6 +209,10 @@ input[type="range"]::-webkit-slider-thumb {
 .trip-used  { font-size: 11px; color: var(--muted); }
 .trip-del   { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px 6px; }
 .trip-del:hover { color: var(--danger); }
+.trip-edit  { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px 6px; }
+.trip-edit:hover { color: var(--accent); }
+.trip-editing { flex-direction: column; align-items: stretch; gap: 0; }
+.trip-edit-form { width: 100%; }
 .no-trips   { text-align: center; padding: 30px; color: var(--muted); font-size: 14px; }
 
 /* ── WARTUNG PAGE ──────────────────────────────────────────────────────── */
