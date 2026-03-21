@@ -113,7 +113,8 @@ html, body {
 
 input[type="number"],
 input[type="text"],
-input[type="date"] {
+input[type="date"],
+input[type="time"] {
   width: 100%;
   background: var(--bg3); border: 1px solid var(--border);
   border-radius: 8px; color: var(--text);
