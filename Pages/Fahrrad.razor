@@ -208,6 +208,7 @@
     {
         _sliderPct = int.Parse(e.Value!.ToString()!);
         _inputPct  = _sliderPct;
+        State.Battery.Percent = _sliderPct;
     }
 
     private async Task OnTargetChange(ChangeEventArgs e)
