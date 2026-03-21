@@ -223,7 +223,8 @@ input[type="range"]::-webkit-slider-thumb {
   text-decoration: none;
 }
 .nav-item.active, .nav-item:focus { color: var(--accent); outline: none; }
-.nav-icon  { font-size: 22px; line-height: 1; }
+.nav-icon  { font-size: 22px; line-height: 1; filter: grayscale(1) opacity(.45); transition: filter .2s; }
+.nav-item.active .nav-icon, .nav-item:focus .nav-icon { filter: none; }
 .nav-label { font-size: 10px; font-weight: 500; letter-spacing: .05em;
   text-transform: uppercase; font-family: var(--mono); }
 
