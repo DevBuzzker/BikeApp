@@ -62,7 +62,7 @@
                         <button class="tag-remove" type="button" @onclick="() => _editableTags.RemoveAt(idx)">✕</button>
                     </div>
                 }
-                <button class="quick-tag" type="button" @onclick="() => _editableTags.Add('')">+ Hinzufügen</button>
+                <button class="quick-tag" type="button" @onclick="() => _editableTags.Add(string.Empty)">+ Hinzufügen</button>
                 <div class="btn-row" style="margin-top:8px">
                     <button class="btn secondary" style="padding:8px" @onclick="CancelTagEdit">Abbrechen</button>
                     <button class="btn" style="padding:8px" @onclick="SaveTags">Speichern ✓</button>
