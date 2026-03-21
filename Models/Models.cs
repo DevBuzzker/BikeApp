@@ -75,6 +75,7 @@ public class KilometerPrefs
     public double? LastKm { get; set; }
     public string LastName { get; set; } = "";
     public Dictionary<string, int> TagUsage { get; set; } = new();
+    public List<string> Tags { get; set; } = ["Arbeit", "Einkaufen", "Spazierfahrt", "Sport", "Ausflug"];
 }
 
 public class BikeInfo
