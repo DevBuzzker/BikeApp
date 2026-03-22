@@ -68,6 +68,8 @@
     {
         _showConfirm = false;
         await State.ResetAsync();
+        Nav.NavigateTo("/kilometer", forceLoad: false);
+        await Task.Delay(50);
         Nav.NavigateTo("/", forceLoad: false);
     }
 
