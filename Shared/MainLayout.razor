@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject BikeStateService State
 @inject NavigationManager Nav
+@inject StorageService Storage
 
 <div class="shell">
     <header class="topbar">
@@ -31,6 +32,8 @@
         </NavLink>
     </nav>
 </div>
+
+<Onboarding />
 
 @if (_showConfirm)
 {

@@ -1,0 +1,76 @@
+@inject StorageService Storage
+
+@if (_visible)
+{
+    <div class="onboarding-backdrop">
+        <div class="onboarding-box">
+
+            @* ── Slide indicators ── *@
+            <div class="onboarding-dots">
+                @for (int i = 0; i < _slides.Length; i++)
+                {
+                    var idx = i;
+                    <span class="onboarding-dot @(_step == idx ? "active" : "")"
+                          @onclick="() => _step = idx"></span>
+                }
+            </div>
+
+            @* ── Slide content ── *@
+            <div class="onboarding-slide">
+                <div class="onboarding-emoji">@_slides[_step].Emoji</div>
+                <div class="onboarding-title">@_slides[_step].Title</div>
+                <div class="onboarding-body">@_slides[_step].Body</div>
+            </div>
+
+            @* ── Actions ── *@
+            <div class="onboarding-actions">
+                @if (_step < _slides.Length - 1)
+                {
+                    <button class="onboarding-skip" @onclick="Finish">Überspringen</button>
+                    <button class="onboarding-next" @onclick="Next">Weiter →</button>
+                }
+                else
+                {
+                    <button class="onboarding-next full" @onclick="Finish">Los geht's ⚡</button>
+                }
+            </div>
+
+        </div>
+    </div>
+}
+
+@code {
+    private bool _visible;
+    private int  _step;
+
+    private record Slide(string Emoji, string Title, string Body);
+
+    private readonly Slide[] _slides =
+    [
+        new("⚡",
+            "Willkommen beim E-Bike Ladehelfer",
+            "Dein smarter Begleiter für batterieschonendes Laden und Fahren. Plane deine Ladezeit, tracke deine Kilometer und behalte die Wartung im Blick."),
+
+        new("🔋",
+            "Wusstest du das?",
+            "Lithium-Akkus, die regelmäßig nur bis 80 % geladen werden, halten bis zu 3× länger — aus ~500 Vollzyklen werden über 1.500 Ladezyklen. Dein Akku dankt es dir!"),
+
+        new("🗺️",
+            "Alles an einem Ort",
+            "Aktueller Akkustand & Ladezeit-Berechnung, Fahrtenprotokoll mit Kilometerstand und Wartungserinnerungen — alles offline, alles auf deinem Gerät."),
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var done = await Storage.GetAsync<bool?>("ebike_onboarding_done");
+        _visible = done != true;
+    }
+
+    private void Next() => _step++;
+
+    private async Task Finish()
+    {
+        _visible = false;
+        await Storage.SetAsync("ebike_onboarding_done", true);
+    }
+}
