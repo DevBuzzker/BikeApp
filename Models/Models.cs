@@ -6,6 +6,8 @@ public class BatteryState
     public double? CapacityWh { get; set; } = 360;
     public double? RangeKm { get; set; } = 42;
     public DateTime? LastCharged { get; set; }
+    public int? ChargeFromPercent { get; set; }
+    public int? ChargeToPercent { get; set; }
 
     // 1% = 1 min 22 sec = 82 seconds (editable)
     public int SecondsPerPercent { get; set; } = 82;
