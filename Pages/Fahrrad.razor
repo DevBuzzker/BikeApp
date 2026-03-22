@@ -31,21 +31,16 @@
             </div>
             <div class="stat-row">
                 <span class="stat-label">Zuletzt geladen</span>
-                <span class="stat-val" style="font-size:13px">
-                    @if (State.Battery.LastCharged.HasValue)
-                    {
-                        @State.Battery.LastCharged.Value.ToString("dd.MM.yyyy HH:mm:ss")
+                <span class="stat-val col" style="font-size:13px">
+                    <span>@(State.Battery.LastCharged.HasValue
+                        ? State.Battery.LastCharged.Value.ToString("dd.MM.yyyy HH:mm:ss")
+                        : "—")</span>
+                    <span class="stat-charge-range">
                         @if (State.Battery.ChargeFromPercent.HasValue && State.Battery.ChargeToPercent.HasValue)
                         {
-                            <span style="color:var(--muted);margin-left:6px">
-                                (@State.Battery.ChargeFromPercent % → @State.Battery.ChargeToPercent %)
-                            </span>
+                            @($"{State.Battery.ChargeFromPercent}% → {State.Battery.ChargeToPercent}%")
                         }
-                    }
-                    else
-                    {
-                        @("—")
-                    }
+                    </span>
                 </span>
             </div>
         </div>
