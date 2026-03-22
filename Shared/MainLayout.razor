@@ -68,7 +68,7 @@
     {
         _showConfirm = false;
         await State.ResetAsync();
-        Nav.NavigateTo("/", forceLoad: true);
+        Nav.NavigateTo("/", forceLoad: false);
     }
 
     public void Dispose() => _timer?.Dispose();
