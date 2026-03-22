@@ -238,17 +238,14 @@
     {
         int newPct = int.Parse(e.Value!.ToString()!);
 
-        bool inSession = _sessionStartPct is not null;
-
-        if (newPct > _sliderPct || inSession)
+        if (newPct > _sliderPct)
         {
             // Starting a new session — record starting point only once
             if (_sessionStartPct is null)
                 _sessionStartPct = _sliderPct;
 
-            State.Battery.LastCharged       = DateTime.Now;
+            State.Battery.LastCharged      = DateTime.Now;
             State.Battery.ChargeFromPercent = _sessionStartPct;
-            // During session, down-move = correction (e.g. 81→80), not discharge
             State.Battery.ChargeToPercent   = newPct;
 
             // Debounce: reset 10-second window on every move
