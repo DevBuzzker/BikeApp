@@ -46,13 +46,13 @@ html, body {
 .topbar-title { font-family: var(--mono); font-size: 14px; font-weight: 700;
                 color: var(--accent); letter-spacing: .08em; text-transform: uppercase; flex: 1; }
 .topbar-right { display: flex; align-items: center; gap: 10px; }
-.topbar-time  { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.topbar-time  { font-family: var(--mono); font-size: 11px; color: #8b949e; }
 .topbar-reset-btn {
   background: none; border: none; cursor: pointer;
   font-size: 16px; padding: 2px 4px; line-height: 1;
-  opacity: .45; transition: opacity .2s;
+  color: #8b949e; opacity: .6; transition: opacity .2s, color .2s;
 }
-.topbar-reset-btn:hover { opacity: 1; }
+.topbar-reset-btn:hover { opacity: 1; color: #f85149; }
 
 /* ── MODAL ──────────────────────────────────────────────────────────────── */
 .modal-backdrop {
