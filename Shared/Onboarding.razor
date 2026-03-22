@@ -1,4 +1,6 @@
 @inject StorageService Storage
+@inject BikeStateService State
+@implements IDisposable
 
 @if (_visible)
 {
@@ -62,8 +64,16 @@
 
     protected override async Task OnInitializedAsync()
     {
+        State.OnReset += HandleReset;
         var done = await Storage.GetAsync<bool?>("ebike_onboarding_done");
         _visible = done != true;
+    }
+
+    private void HandleReset()
+    {
+        _step    = 0;
+        _visible = true;
+        InvokeAsync(StateHasChanged);
     }
 
     private void Next() => _step++;
@@ -73,4 +83,6 @@
         _visible = false;
         await Storage.SetAsync("ebike_onboarding_done", true);
     }
+
+    public void Dispose() => State.OnReset -= HandleReset;
 }
