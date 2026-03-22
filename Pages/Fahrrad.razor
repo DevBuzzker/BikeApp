@@ -1,5 +1,6 @@
 @page "/"
 @inject BikeStateService State
+@implements IDisposable
 
 <PageTitle>Fahrrad – E-Bike Tracker</PageTitle>
 
@@ -195,6 +196,12 @@
 
     protected override void OnInitialized()
     {
+        LoadFromState();
+        State.OnReset += HandleReset;
+    }
+
+    private void LoadFromState()
+    {
         _sliderPct   = State.Battery.Percent ?? 50;
         _inputPct    = State.Battery.Percent;
         _inputCap    = State.Battery.CapacityWh;
@@ -202,6 +209,17 @@
         _chargeMin   = State.Battery.SecondsPerPercent / 60;
         _chargeSec   = State.Battery.SecondsPerPercent % 60;
         _targetPct   = State.Battery.TargetPercent;
+    }
+
+    private void HandleReset()
+    {
+        LoadFromState();
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        State.OnReset -= HandleReset;
     }
 
     private void OnSliderChange(ChangeEventArgs e)
