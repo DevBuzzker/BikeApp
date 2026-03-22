@@ -33,7 +33,7 @@
                 <span class="stat-label">Zuletzt geladen</span>
                 <span class="stat-val" style="font-size:13px">
                     @(State.Battery.LastCharged.HasValue
-                        ? State.Battery.LastCharged.Value.ToString("dd.MM.yyyy")
+                        ? State.Battery.LastCharged.Value.ToString("dd.MM.yyyy HH:mm:ss")
                         : "—")
                 </span>
             </div>
@@ -224,7 +224,10 @@
 
     private void OnSliderChange(ChangeEventArgs e)
     {
-        _sliderPct = int.Parse(e.Value!.ToString()!);
+        int newPct = int.Parse(e.Value!.ToString()!);
+        if (newPct > (_sliderPct))
+            State.Battery.LastCharged = DateTime.Now;
+        _sliderPct = newPct;
         _inputPct  = _sliderPct;
         State.Battery.Percent = _sliderPct;
     }
