@@ -3,7 +3,7 @@ namespace EBikeTracker.Models;
 public class BatteryState
 {
     public int? Percent { get; set; } = 50;
-    public double? CapacityWh { get; set; }
+    public double? CapacityWh { get; set; } = 360;
     public double? RangeKm { get; set; } = 42;
     public DateTime? LastCharged { get; set; }
 
