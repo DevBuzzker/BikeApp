@@ -49,10 +49,10 @@ html, body {
 .topbar-time  { font-family: var(--mono); font-size: 11px; color: #8b949e; }
 .topbar-reset-btn {
   background: none; border: none; cursor: pointer;
-  font-size: 16px; padding: 2px 4px; line-height: 1;
-  color: #8b949e; opacity: .6; transition: opacity .2s, color .2s;
+  font-size: 22px; padding: 2px 4px; line-height: 1;
+  color: #39d353; opacity: .75; transition: opacity .2s, color .2s, transform .3s;
 }
-.topbar-reset-btn:hover { opacity: 1; color: #f85149; }
+.topbar-reset-btn:hover { opacity: 1; color: #f85149; transform: rotate(-180deg); }
 
 /* ── MODAL ──────────────────────────────────────────────────────────────── */
 .modal-backdrop {
