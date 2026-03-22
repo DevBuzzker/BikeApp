@@ -56,6 +56,21 @@ public class BikeStateService(StorageService storage)
         StateChanged?.Invoke();
     }
 
+    public async Task ResetAsync()
+    {
+        await storage.RemoveAsync("ebike_battery");
+        await storage.RemoveAsync("ebike_trips");
+        await storage.RemoveAsync("ebike_maint");
+        await storage.RemoveAsync("ebike_info");
+        await storage.RemoveAsync("ebike_kmprefs");
+        Battery     = new();
+        Trips       = [];
+        Maintenance = new();
+        BikeInfo    = new();
+        KmPrefs     = new();
+        StateChanged?.Invoke();
+    }
+
     public void AddTrip(Trip trip)   => Trips.Insert(0, trip);
     public void RemoveTrip(Guid id)  => Trips.RemoveAll(t => t.Id == id);
     public void ClearTrips()         => Trips.Clear();
