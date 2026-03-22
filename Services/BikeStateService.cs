@@ -15,6 +15,7 @@ public class BikeStateService(StorageService storage)
     public KilometerPrefs KmPrefs { get; private set; } = new();
 
     public event Action? StateChanged;
+    public event Action? OnReset;
 
     public async Task LoadAsync()
     {
@@ -69,6 +70,7 @@ public class BikeStateService(StorageService storage)
         BikeInfo    = new();
         KmPrefs     = new();
         StateChanged?.Invoke();
+        OnReset?.Invoke();
     }
 
     public void AddTrip(Trip trip)   => Trips.Insert(0, trip);

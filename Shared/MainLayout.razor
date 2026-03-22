@@ -68,11 +68,7 @@
     {
         _showConfirm = false;
         await State.ResetAsync();
-        // Navigating away and immediately back forces Blazor to re-create
-        // the Fahrrad component (re-runs OnInitialized) without a full page
-        // reload, which would show the "Lädt..." splash screen.
-        Nav.NavigateTo("/kilometer", forceLoad: false);
-        Nav.NavigateTo("/", forceLoad: false);
+        // Fahrrad subscribes to State.OnReset and reloads itself directly.
     }
 
     public void Dispose() => _timer?.Dispose();
