@@ -197,9 +197,8 @@
     private int _chargeMin = 1;
     private int _chargeSec = 22;
 
-    // Charging session debounce
+    // Charging session: tracks start value until Speichern is pressed
     private int? _sessionStartPct;
-    private CancellationTokenSource? _sessionCts;
 
     private bool _pctError;
     private bool _capError;
@@ -230,8 +229,6 @@
     public void Dispose()
     {
         State.OnReset -= HandleReset;
-        _sessionCts?.Cancel();
-        _sessionCts?.Dispose();
     }
 
     private void OnSliderChange(ChangeEventArgs e)
@@ -240,23 +237,18 @@
 
         if (newPct > _sliderPct)
         {
-            // Starting a new session — record starting point only once
+            // Start session: record starting point only once
             if (_sessionStartPct is null)
                 _sessionStartPct = _sliderPct;
 
-            State.Battery.LastCharged      = DateTime.Now;
+            State.Battery.LastCharged       = DateTime.Now;
             State.Battery.ChargeFromPercent = _sessionStartPct;
             State.Battery.ChargeToPercent   = newPct;
-
-            // Debounce: reset 10-second window on every move
-            _sessionCts?.Cancel();
-            _sessionCts = new CancellationTokenSource();
-            var token = _sessionCts.Token;
-            Task.Delay(10_000, token).ContinueWith(t =>
-            {
-                if (!t.IsCanceled)
-                    _sessionStartPct = null;   // session ended
-            });
+        }
+        else if (_sessionStartPct is not null)
+        {
+            // Correction during active session (e.g. 81 → 80): update end value only
+            State.Battery.ChargeToPercent = newPct;
         }
 
         _sliderPct = newPct;
@@ -295,6 +287,7 @@
         State.Battery.LastCharged      = DateTime.Now;
 
         await State.SaveBatteryAsync();
+        _sessionStartPct = null; // new session starts fresh after explicit save
         _toast?.Show("Gespeichert! ⚡");
     }
 
