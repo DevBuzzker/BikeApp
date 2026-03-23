@@ -284,7 +284,10 @@
         State.Battery.CapacityWh       = _inputCap  ?? State.Battery.CapacityWh;
         State.Battery.RangeKm          = _inputRange ?? State.Battery.RangeKm;
         State.Battery.SecondsPerPercent = _chargeMin * 60 + _chargeSec;
-        State.Battery.LastCharged      = DateTime.Now;
+
+        // Only update LastCharged if user actually charged (slider went up this session)
+        if (_sessionStartPct is not null)
+            State.Battery.LastCharged = DateTime.Now;
 
         await State.SaveBatteryAsync();
         _sessionStartPct = null; // new session starts fresh after explicit save
