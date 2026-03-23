@@ -2,14 +2,16 @@ namespace EBikeTracker.Models;
 
 public class BatteryState
 {
-    public int? Percent { get; set; }
-    public double? CapacityWh { get; set; }
+    public int? Percent { get; set; } = 50;
+    public double? CapacityWh { get; set; } = 360;
     public double? RangeKm { get; set; } = 42;
     public DateTime? LastCharged { get; set; }
+    public int? ChargeFromPercent { get; set; }
+    public int? ChargeToPercent { get; set; }
 
     // 1% = 1 min 22 sec = 82 seconds (editable)
     public int SecondsPerPercent { get; set; } = 82;
-    public int TargetPercent { get; set; } = 100;
+    public int TargetPercent { get; set; } = 80;
 
     public TimeSpan ChargeTimeToFull =>
         Percent.HasValue

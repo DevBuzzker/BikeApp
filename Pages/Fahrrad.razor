@@ -1,5 +1,6 @@
 @page "/"
 @inject BikeStateService State
+@implements IDisposable
 
 <PageTitle>Fahrrad – E-Bike Tracker</PageTitle>
 
@@ -28,12 +29,18 @@
                         : "— Wh")
                 </span>
             </div>
-            <div class="stat-row">
+            <div class="stat-row" style="align-items:flex-start">
                 <span class="stat-label">Zuletzt geladen</span>
-                <span class="stat-val" style="font-size:13px">
-                    @(State.Battery.LastCharged.HasValue
-                        ? State.Battery.LastCharged.Value.ToString("dd.MM.yyyy")
-                        : "—")
+                <span class="stat-val" style="font-size:13px;display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+                    <span>@(State.Battery.LastCharged.HasValue
+                        ? State.Battery.LastCharged.Value.ToString("dd.MM.yyyy HH:mm:ss")
+                        : "—")</span>
+                    @if (State.Battery.ChargeFromPercent.HasValue && State.Battery.ChargeToPercent.HasValue)
+                    {
+                        <span style="color:var(--accent);font-size:12px">
+                            @(State.Battery.ChargeFromPercent)% → @(State.Battery.ChargeToPercent)%
+                        </span>
+                    }
                 </span>
             </div>
         </div>
@@ -190,10 +197,18 @@
     private int _chargeMin = 1;
     private int _chargeSec = 22;
 
+    private bool _wentDown; // true after slider goes down, resets from/to on next upward move
+
     private bool _pctError;
     private bool _capError;
 
     protected override void OnInitialized()
+    {
+        LoadFromState();
+        State.OnReset += HandleReset;
+    }
+
+    private void LoadFromState()
     {
         _sliderPct   = State.Battery.Percent ?? 50;
         _inputPct    = State.Battery.Percent;
@@ -204,9 +219,37 @@
         _targetPct   = State.Battery.TargetPercent;
     }
 
+    private void HandleReset()
+    {
+        LoadFromState();
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        State.OnReset -= HandleReset;
+    }
+
     private void OnSliderChange(ChangeEventArgs e)
     {
-        _sliderPct = int.Parse(e.Value!.ToString()!);
+        int newPct = int.Parse(e.Value!.ToString()!);
+
+        if (newPct > _sliderPct)
+        {
+            // Going up: if we went down since last increase, start fresh
+            if (_wentDown || State.Battery.ChargeFromPercent is null)
+                State.Battery.ChargeFromPercent = _sliderPct;
+
+            State.Battery.ChargeToPercent = newPct;
+            State.Battery.LastCharged     = DateTime.Now;
+            _wentDown = false;
+        }
+        else if (newPct < _sliderPct)
+        {
+            _wentDown = true;
+        }
+
+        _sliderPct = newPct;
         _inputPct  = _sliderPct;
         State.Battery.Percent = _sliderPct;
     }
@@ -239,7 +282,6 @@
         State.Battery.CapacityWh       = _inputCap  ?? State.Battery.CapacityWh;
         State.Battery.RangeKm          = _inputRange ?? State.Battery.RangeKm;
         State.Battery.SecondsPerPercent = _chargeMin * 60 + _chargeSec;
-        State.Battery.LastCharged      = DateTime.Now;
 
         await State.SaveBatteryAsync();
         _toast?.Show("Gespeichert! ⚡");

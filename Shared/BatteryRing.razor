@@ -1,11 +1,11 @@
 @* Reusable SVG battery ring *@
 
 <div class="battery-ring">
-    <svg width="110" height="110" viewBox="0 0 110 110">
-        <circle class="ring-bg" cx="55" cy="55" r="45"
-                fill="none" stroke="#21262d" stroke-width="10" />
-        <circle class="ring-fill" cx="55" cy="55" r="45"
-                fill="none" stroke-width="10" stroke-linecap="round"
+    <svg width="130" height="130" viewBox="0 0 130 130">
+        <circle class="ring-bg" cx="65" cy="65" r="54"
+                fill="none" stroke="#21262d" stroke-width="11" />
+        <circle class="ring-fill" cx="65" cy="65" r="54"
+                fill="none" stroke-width="11" stroke-linecap="round"
                 stroke="@Color"
                 stroke-dasharray="@Circumference"
                 stroke-dashoffset="@Offset"
@@ -20,7 +20,7 @@
 @code {
     [Parameter] public int? Percent { get; set; }
 
-    private const double Circumference = 2 * Math.PI * 45; // ≈282.7
+    private const double Circumference = 2 * Math.PI * 54; // ≈339.3
 
     private string Color => Percent switch
     {
