@@ -1,5 +1,5 @@
 # ⚡ E-Bike Tracker
-
+Demo - https://devbuzzker.github.io/BikeApp/
 Blazor WebAssembly PWA zum Verfolgen von Akku, Kilometern und Wartung deines E-Bikes.
 
 ## Features
