@@ -1,13 +1,14 @@
 # ⚡ E-Bike Tracker
-Demo - https://devbuzzker.github.io/BikeApp/
-Blazor WebAssembly PWA zum Verfolgen von Akku, Kilometern und Wartung deines E-Bikes.
+Demo: https://devbuzzker.github.io/BikeApp/
+
+Blazor WebAssembly PWA zum Verfolgen von Akku, Kilometern und Wartung deines E-Bikes. Entstanden in drei Tagen mit Claude Code.
 
 ## Features
 
 - 🔋 **Fahrrad** — Akkustand eingeben, Ladezeit berechnen (1% = 1 min 22 sek), Zielladung
 - 📍 **Kilometer** — Fahrten protokollieren, Woche/Monat/Gesamt-Statistiken
 - 🔧 **Wartung** — Ketten-, Reifen-, Inspektions-Intervalle mit Statusampel
-- 📱 **PWA** — auf dem Handy installierbar, funktioniert offline
+- 📱 **PWA** — auf dem Handy installierbar
 - 💾 Alle Daten lokal im Browser (localStorage), kein Server nötig
 
 ## Lokale Entwicklung
@@ -19,29 +20,11 @@ dotnet run
 # → https://localhost:5001
 ```
 
-## Deploy auf GitHub Pages
+Deployment: Bei jedem Push auf `main` baut GitHub Actions die App und veröffentlicht sie auf GitHub Pages (`.github/workflows/deploy.yml`).
 
-### 1. Repo erstellen & pushen
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/DEIN_NAME/DEIN_REPO.git
-git push -u origin main
-```
+## Auf dem Handy installieren
 
-### 2. GitHub Pages aktivieren
-- Gehe zu **Settings → Pages**
-- Source: **GitHub Actions**
-- Fertig — der Workflow baut und deployed automatisch!
-
-### 3. App-URL
-```
-https://DEIN_NAME.github.io/DEIN_REPO/
-```
-
-### 4. App auf iPhone/Android installieren
-- Safari/Chrome → die URL öffnen
+- Safari/Chrome → die Demo-URL öffnen
 - **Teilen → Zum Home-Bildschirm** (iOS) oder **Installieren** (Android)
 
 ## Projektstruktur
@@ -61,7 +44,8 @@ EBikeTracker/
 │   ├── MainLayout.razor   # Shell + Bottom-Navigation
 │   ├── BatteryRing.razor  # SVG-Donut-Komponente
 │   ├── WartungRow.razor   # Status-Zeile mit Badge
-│   └── Toast.razor        # Benachrichtigungs-Toast
+│   ├── Toast.razor        # Benachrichtigungs-Toast
+│   └── Onboarding.razor   # Einführung beim ersten Start
 └── wwwroot/
     ├── index.html
     ├── manifest.json      # PWA Manifest
